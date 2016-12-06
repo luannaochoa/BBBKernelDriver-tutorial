@@ -40,13 +40,13 @@
 
 
 ##Code:
-+ All kernel modules must have at least an init and exit function
-+ Can't use printf, must use printk
-+ You can see what modules are already loaded into the kernel by running lsmod
++ All kernel modules must have at least an init and exit macros
++ You can't use printf on the kernel level, you must use printk
++ You can see what modules are already loaded into the kernel by running `lsmod`
     * This command gets info from /proc/modules
-+ insmod and modprob are other important commands
-    * insmod requires fullpath name and careful use 
-    * modprob takes the module name, without any extension, and figures it all out by parsing /lib/modules/version/modules.dep
++ `insmod` and `modprob` are other important commands
+    * `insmod` requires fullpath name and careful use 
+    * `modprob` takes the module name, without any extension, and figures it all out by parsing /lib/modules/version/modules.dep
 
 ####Device Driver Code 
 This is the device driver code for the BeagleBoneBlack LED.
