@@ -33,25 +33,11 @@
 + http://embedjournal.com/kernel-compilation-beaglebone-black/ 
 
 ####Disclaimers 
-+ If a command doesn't have 'permission', try sudo 
++ If a command doesn't have 'permission', try sudo [command] 
 + If a command doesn't work at all, try spelling it correctly 
 
 
 ##Code:
-
-##Partition The SD:
-
-##Build The BeagleBoneBlack Kernel:
-
-##Bring All Parts Together
-
-
-#Part1: Write the Device Driver 
--------
-##testchar.c
-Below is the source code we will be using for the remainder of this tutorial.
-
-###Note:
 + All kernel modules must have at least an init and exit function
 + Can't use printf, must use printk
 + You can see what modules are already loaded into the kernel by running lsmod
@@ -60,6 +46,8 @@ Below is the source code we will be using for the remainder of this tutorial.
     * insmod requires fullpath name and careful use 
     * modprob takes the module name, without any extension, and figures it all out by parsing /lib/modules/version/modules.dep
 
+####Device Driver Code 
+This is the device driver code for the BeagleBoneBlack LED.
 ```c
     /***********************************************************************
     * Beagle Bone Black Morse Code LED Blink Device Driver
@@ -500,98 +488,7 @@ Below is the source code we will be using for the remainder of this tutorial.
 
 ```
 
-##Part2: Compile the Kernel with the Device Driver 
--------
-
-
-###Gathering Working Tools
-
-+ **The ARM Cross Compiler**
-    * In order to complete this tutorial you will need an ARM cross compiler.
-
-        `sudo apt-get install gcc-arm-linux-gnueabi`
-
-+ **GIT**
-    * In order to complete this tutorial you will also need GIT 
-
-        `sudo apt-get install git`
-
-    * Configure git with your identity.
-    
-        `git config --global user.email "your.email@here.com`
-
-+ **lzop Compression**
-    * Install lzop Compression. You'll want to install this so you can uncompress the kernel. 
-        
-        `sudo apt-get install lzop`
-
-+ **uBoot mkimage**
-    * Install pre-reqs for u-Boot and then download and install u-Boot with the following commands
-
-        `sudo apt-get install libssl-dev`
-
-        `wget ftp://ftp.denx.de/pub/u-boot/u-boot-latest.tar.bz2`
-
-        `tar -xjf u-boot-latest.tar.bz2`
-
-        `cd` into `u-boot` directory
-
-        `make sandbox_defconfig tools-only`
-
-        `sudo install tools/mkimage /usr/local/bin`
-
-###Putting Our Tools to Work, Compiling the Kernel with the Device Driver
-
-1. Clone the git repo by issuing the following command:
-    `git clone git://github.com/beagleboard/linux.git`
-
-2. `cd` into linux and run `git checkout 4.1`
-
-3. `cd` into linux/drivers/char 
-
-4. Create a directory named motorModule in the stated directory with the following command:
-
-    `mkdir morseModule`
-
-5. Place the C code for morseModule in this directory 
-
-6. Create a makefile in this directory 
-    * Makefile should contain:
-       `obj $(CONFIG_MORSE_MODULE) += testchar.o`
-
-7. Run the `cd ..` command. Your present working directory should be /linux/drivers/char 
-
-8. Edit the Kconfig file in this directory. The goal is to congigure the module to be loaded. The file should contain:
-
-    `config MORSE_MODULE
-    tristate "Enable MorseModule"
-    default y`
-
-9. In the same directory, make changes to the makefile. So at /linux/drivers/char/makefile add the following lines:
-
-    `obj $(CONFIG_MORSE_MODULE) += morseModule/ `
-
-10. Now compile the driver with the following command: `make ARCH=arm CROSS_COMPILE=linux-arm-gnuaebi- -j4`. This will produce testchar.o and other files.
-
-11. Now run `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- uImage dtbs LOADADDR=0x80008000 -j4` . This command produces a compressed kernel. We can transfer this to the sd card or vmlinuz, the kernel proper. 
-
-11. Now transfer your dtb and your uImage to the partitioned SD card. In addition to installing your RFS with these commands: 
-    
-     `cp uImage /media/luanna/BOOT`
-
-     `cp am335x-boneblack.dtb /media/luanna/BOOT`
-
-     `sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=/media/luanna/RFS modules_install`
-
-12. Insert your SD into the BeagleBoneBlack, connect the debug cable to your BeagleBoneBlack as well and provide your BeagleBoneBlack a power source. 
-
-13. Log into your beagleboneblack by typing in root. `cd` to where your tester.c executable is and run the program with the string you'd like in morse code. 
-
-14. Voila!
-
-
-###Part3: C Program tester.c
--------
+####User Space Program Code
 This program takes one argument, the string we would like to convert to morse.
 
 ```c
@@ -642,3 +539,116 @@ This program takes one argument, the string we would like to convert to morse.
         return 0;
 }
 ```
+
+##Partition The SD:
+####Pre-reqs
+1. Have access to your SD through the VM 
+    1. Consider using a USB SD Card Reader
+    2. Consider using a computer with an SD Reader
+2. Download gparted
+
+####Steps
+1. Fire up gparted
+2. Create 2 partitions on the SD Card
+
+##Build The BeagleBoneBlack Kernel:
+
+####Pre-reqs
+1. Clone the git repo by issuing the following command:
+    `git clone git://github.com/beagleboard/linux.git`
+
+2. `cd` into linux and run `git checkout 4.1`
+
+####Kernel File Changes
+
+1. `cd` into linux/drivers/char 
+
+2. Create a directory named motorModule in the stated directory with the following command:
+
+    `mkdir morseModule`
+
+3. Place the C code for morseModule in this directory 
+
+4. Create a makefile in this directory 
+    * Makefile should contain:
+       `obj $(CONFIG_MORSE_MODULE) += testchar.o`
+
+5. Run the `cd ..` command. Your present working directory should be /linux/drivers/char 
+
+6. Edit the Kconfig file in this directory. The goal is to congigure the module to be loaded. The file should contain:
+
+    `config MORSE_MODULE
+    tristate "Enable MorseModule"
+    default y`
+
+7. In the same directory, make changes to the makefile. So at /linux/drivers/char/makefile add the following lines:
+
+    `obj $(CONFIG_MORSE_MODULE) += morseModule/ `
+
+####Compiling Kernel with the Device Driver
+
+1. Now compile the driver with the following command: `make ARCH=arm CROSS_COMPILE=linux-arm-gnuaebi- -j4`. This will produce testchar.o and other files.
+
+2. Now run `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- uImage dtbs LOADADDR=0x80008000 -j4` . This command produces a compressed kernel. We can transfer this to the sd card or vmlinuz, the kernel proper. 
+
+
+##Bring All Parts Together
+####Loading the Kernel To The SD Card
+
+1. Now transfer your dtb and your uImage to the partitioned SD card. In addition to installing your RFS with these commands: 
+    
+     `cp uImage /media/luanna/BOOT`
+
+     `cp am335x-boneblack.dtb /media/luanna/BOOT`
+
+     `sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=/media/luanna/RFS modules_install`
+
+####Boot BeagleBoneBlack Off The SD Card
+
+1. Insert your SD into the BeagleBoneBlack, connect the debug cable to your BeagleBoneBlack as well and provide your BeagleBoneBlack a power source. 
+
+####Test The Kernel Device Driver
+13. Log into your beagleboneblack by typing in root. `cd` to where your tester.c executable is and run the program with the string you'd like in morse code. 
+
+
+
+
+
+###Gathering Working Tools
+
++ **The ARM Cross Compiler**
+    * In order to complete this tutorial you will need an ARM cross compiler.
+
+        `sudo apt-get install gcc-arm-linux-gnueabi`
+
++ **GIT**
+    * In order to complete this tutorial you will also need GIT 
+
+        `sudo apt-get install git`
+
+    * Configure git with your identity.
+    
+        `git config --global user.email "your.email@here.com`
+
++ **lzop Compression**
+    * Install lzop Compression. You'll want to install this so you can uncompress the kernel. 
+        
+        `sudo apt-get install lzop`
+
++ **uBoot mkimage**
+    * Install pre-reqs for u-Boot and then download and install u-Boot with the following commands
+
+        `sudo apt-get install libssl-dev`
+
+        `wget ftp://ftp.denx.de/pub/u-boot/u-boot-latest.tar.bz2`
+
+        `tar -xjf u-boot-latest.tar.bz2`
+
+        `cd` into `u-boot` directory
+
+        `make sandbox_defconfig tools-only`
+
+        `sudo install tools/mkimage /usr/local/bin`
+
+
+
