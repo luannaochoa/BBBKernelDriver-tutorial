@@ -40,6 +40,7 @@
 
 ####Disclaimers 
 + If a command doesn't have 'permission', try `sudo [your-command]`
++ If a command doesn't work at all, try typing it correctly 
 
 ##Code:
 + All kernel modules must have at least an init and exit macros
