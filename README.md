@@ -1,4 +1,8 @@
 #Kernel Device Driver Assignment 
+TO DO LIST:
+1. add how to partition sd
+2. Create more legit sounding titles
+3. spell chyeck 
 
 #Part1: Write the Device Driver 
 -------
