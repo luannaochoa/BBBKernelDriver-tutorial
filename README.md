@@ -555,10 +555,49 @@ This program takes one argument, the string we would like to convert to morse.
 ##Build The BeagleBoneBlack Kernel:
 
 ####Pre-reqs
-1. Clone the git repo by issuing the following command:
+
++ **The ARM Cross Compiler**
+    * In order to complete this tutorial you will need an ARM cross compiler.
+
+        `sudo apt-get install gcc-arm-linux-gnueabi`
+
++ **GIT**
+    * In order to complete this tutorial you will also need GIT 
+
+        `sudo apt-get install git`
+
+    * Configure git with your identity.
+    
+        `git config --global user.email "your.email@here.com`
+
+    * Clone the git repo by issuing the following command:
     `git clone git://github.com/beagleboard/linux.git`
 
-2. `cd` into linux and run `git checkout 4.1`
+    * `cd` into linux and run `git checkout 4.1`
+
++ **lzop Compression**
+    * Install lzop Compression. You'll want to install this so you can uncompress the kernel. 
+        
+        `sudo apt-get install lzop`
+
++ **uBoot mkimage**
+    * Install pre-reqs for u-Boot and then download and install u-Boot with the following commands
+
+        `sudo apt-get install libssl-dev`
+
+        `wget ftp://ftp.denx.de/pub/u-boot/u-boot-latest.tar.bz2`
+
+        `tar -xjf u-boot-latest.tar.bz2`
+
+        `cd` into `u-boot` directory
+
+        `make sandbox_defconfig tools-only`
+
+        `sudo install tools/mkimage /usr/local/bin`
+
+
+
+
 
 ####Kernel File Changes
 
@@ -601,55 +640,25 @@ This program takes one argument, the string we would like to convert to morse.
 3. Transfer the uImage in the afformentioned directory to your partitioned SD card. Use the command `cp uImage /media/luanna/BOOT`
 4. Now `cd` into 'dts'. Your current file path should be 'linux/arch/arm/boot/dts'. Complete the same task for your dtb. Run the command `cp am335x-boneblack.dtb /media/luanna/BOOT`
 5. Now install your RFS(Root File System) with the following command `sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=/media/luanna/RFS modules_install`
+6. Check that the RFS was installed to the SD card RFS partition. 
+7. Transfer the tester.c executable file to the home directory found on the RFS. Using the command `cp` should do the trick.
 
 ####Boot BeagleBoneBlack Off The SD Card
 
-1. Connect 
-2. Insert your SD into the BeagleBoneBlack, connect the debug cable to your BeagleBoneBlack as well and provide your BeagleBoneBlack a power source. 
+1. Connect your debug cable to the beaglebone and to your computer. Make sure your VM recognizes it
+2. Run picocom with the following command `picocom -b 115200 /dev/ttyUSB0` and be sure the output of that command reads 'Terminal Ready'
+3. Insert your SD into the BeagleBoneBlack
+4. Hold the reset button on the BeagleBoneBlack (across from the USB Port)
+5. Now power up the board with the usb cable
+6. When prompted to login, enter `root` as the user login
+7. You're in. 
 
 ####Test The Kernel Device Driver
 
- Log into your beagleboneblack by typing in root. `cd` to where your tester.c executable is and run the program with the string you'd like in morse code. 
-
-
-
-
-
-###Gathering Working Tools
-
-+ **The ARM Cross Compiler**
-    * In order to complete this tutorial you will need an ARM cross compiler.
-
-        `sudo apt-get install gcc-arm-linux-gnueabi`
-
-+ **GIT**
-    * In order to complete this tutorial you will also need GIT 
-
-        `sudo apt-get install git`
-
-    * Configure git with your identity.
-    
-        `git config --global user.email "your.email@here.com`
-
-+ **lzop Compression**
-    * Install lzop Compression. You'll want to install this so you can uncompress the kernel. 
-        
-        `sudo apt-get install lzop`
-
-+ **uBoot mkimage**
-    * Install pre-reqs for u-Boot and then download and install u-Boot with the following commands
-
-        `sudo apt-get install libssl-dev`
-
-        `wget ftp://ftp.denx.de/pub/u-boot/u-boot-latest.tar.bz2`
-
-        `tar -xjf u-boot-latest.tar.bz2`
-
-        `cd` into `u-boot` directory
-
-        `make sandbox_defconfig tools-only`
-
-        `sudo install tools/mkimage /usr/local/bin`
+1. Log into the BeagleBoneBlack using login `root`
+2. `cd` to where you saved the tester.c executable and run the binary 
+3. Pass ./tester executable the string you want converted into morse 
+4. Your screen and beaglebone should not display the morse of that string
 
 
 
