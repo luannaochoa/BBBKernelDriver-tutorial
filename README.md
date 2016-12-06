@@ -1,8 +1,50 @@
 #Kernel Device Driver Assignment 
-TO DO LIST:
-1. add how to partition sd
-2. Create more legit sounding titles
-3. spell chyeck 
+
+## Tutorial Content
+1. Overview
+    1. Resources Needed
+    2. Resources Cited/Referenced
+    3. Disclaimers  
+2. Code
+    1. Device Driver
+    2. User Space Program
+2. Partition the SD
+    1. Pre-reqs
+    2. Steps
+3. Build the BeagleBoneBlack Kernel
+    1.  Pre-reqs 
+    2.  Kernel File Changes
+    3.  Compiling Kernel with the Device Driver
+4. Bring all Parts together 
+    1. Loading kernel to the SD Card  
+    2. Boot BeagleBoneBlack off the SD Card 
+    3. Test the Kernel Device Driver 
+
+##Overview:
+
+####Resources Needed
++ Computer with a VM running Ubuntu 64-img
++ Patience. 
++ BeagleBoneBlack and USB Connector 
++ SD Card
+
+####Resources Cited/Referenced 
++ http://wiki.beyondlogic.org/index.php/BeagleBoneBlack_Building_Kernel
++ http://embedjournal.com/kernel-compilation-beaglebone-black/ 
+
+####Disclaimers 
++ If a command doesn't have 'permission', try sudo 
++ If a command doesn't work at all, try spelling it correctly 
+
+
+##Code:
+
+##Partition The SD:
+
+##Build The BeagleBoneBlack Kernel:
+
+##Bring All Parts Together
+
 
 #Part1: Write the Device Driver 
 -------
