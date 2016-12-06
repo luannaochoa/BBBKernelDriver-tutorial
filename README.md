@@ -32,6 +32,7 @@
 ####Resources Cited/Referenced 
 + http://wiki.beyondlogic.org/index.php/BeagleBoneBlack_Building_Kernel
 + http://embedjournal.com/kernel-compilation-beaglebone-black/ 
++ http://www.howtogeek.com/howto/17001/how-to-format-a-usb-drive-in-ubuntu-using-gparted/
 
 ####Disclaimers 
 + If a command doesn't have 'permission', try `sudo [your-command]`
@@ -546,11 +547,20 @@ This program takes one argument, the string we would like to convert to morse.
 1. Have access to your SD through the VM 
     1. Consider using a USB SD Card Reader
     2. Consider using a computer with an SD Reader
-2. Download gparted
+2. Download gparted by running the command `sudo apt-get install gparted`
 
 ####Steps
-1. Fire up gparted
-2. Create 2 partitions on the SD Card
+1. Insert your SD card
+2. Run `lsusb` in order to see that the application was picked. 
+3. Fire up gparted by running `sudo gparted` 
+4. Find your SD card in the drop-down box at the top right of GParted
+5. Right click on the partition and unmount it if it is mounted
+6. Then right click on the partition again and delete it 
+7. Right click on the partition again and select new
+8. On the right select create a new partition
+9. Type the label `BOOT` and hit add
+10. Complete these steps a second time around, but change the label to `RFS`
+12. Confirm that you've completed the afformentioned steps correctly 
 
 ##Build The BeagleBoneBlack Kernel:
 
