@@ -24,9 +24,13 @@
 
 ####Resources Needed
 + Computer with a VM running Ubuntu 64-img
+
 + Patience. 
+
 + BeagleBoneBlack and USB Connector 
+
 + SD Card
+
 + Debug Cable (Red, green and blue wires)
 
 ####Resources Cited/Referenced 
@@ -36,16 +40,19 @@
 
 ####Disclaimers 
 + If a command doesn't have 'permission', try `sudo [your-command]`
-+ If a command doesn't work at all, try spelling it correctly 
-
 
 ##Code:
 + All kernel modules must have at least an init and exit macros
+
 + You can't use printf on the kernel level, you must use printk
+
 + You can see what modules are already loaded into the kernel by running `lsmod`
     * This command gets info from /proc/modules
-+ `insmod` and `modprob` are other important commands
+    
+    * `insmod` and `modprob` are other important commands
+    
     * `insmod` requires fullpath name and careful use 
+
     * `modprob` takes the module name, without any extension, and figures it all out by parsing /lib/modules/version/modules.dep
 
 ####Device Driver Code 
@@ -545,21 +552,34 @@ This program takes one argument, the string we would like to convert to morse.
 ##Partition The SD:
 ####Pre-reqs
 1. Have access to your SD through the VM 
+
     1. Consider using a USB SD Card Reader
+
     2. Consider using a computer with an SD Reader
+
 2. Download gparted by running the command `sudo apt-get install gparted`
 
 ####Steps
 1. Insert your SD card
+
 2. Run `lsusb` in order to see that the application was picked. 
+
 3. Fire up gparted by running `sudo gparted` 
+
 4. Find your SD card in the drop-down box at the top right of GParted
+
 5. Right click on the partition and unmount it if it is mounted
+
 6. Then right click on the partition again and delete it 
+
 7. Right click on the partition again and select new
+
 8. On the right select create a new partition
-9. Type the label `BOOT` and hit add
+
+9. Type the label `BOOT` and hit 'add'
+
 10. Complete these steps a second time around, but change the label to `RFS`
+
 12. Confirm that you've completed the afformentioned steps correctly 
 
 ##Build The BeagleBoneBlack Kernel:
@@ -613,23 +633,32 @@ This program takes one argument, the string we would like to convert to morse.
 
 1. `cd` into linux/drivers/char 
 
-2. Create a directory named motorModule in the stated directory with the following command:
+2. Create a directory named morseModule in the stated directory with the following command:
 
     `mkdir morseModule`
 
-3. Place the C code for morseModule in this directory 
+3. Place the device driver C code for morseModule in this directory 
 
 4. Create a makefile in this directory 
     * Makefile should contain:
        `obj $(CONFIG_MORSE_MODULE) += testchar.o`
 
-5. Run the `cd ..` command. Your present working directory should be /linux/drivers/char 
+    * This makefile will now look for any testchar.c or testchar.s files because we've included this line
+
+6. Create a Kconfig file in this directory as well 
+    * Kconfig file should contain: 
+    
+       `config MORSE_MODULE
+            tristate "Enable MorseModule"
+            default y
+            help`
+
+5. Run the `cd ..` command to go back one directory. Your present working directory should be '/linux/drivers/char'
 
 6. Edit the Kconfig file in this directory. The goal is to congigure the module to be loaded. The file should contain:
 
-    `config MORSE_MODULE
-    tristate "Enable MorseModule"
-    default y`
+    `source "drivers/char/morseModule/Kconfig" `
+
 
 7. In the same directory, make changes to the makefile. So at /linux/drivers/char/makefile add the following lines:
 
@@ -646,28 +675,43 @@ This program takes one argument, the string we would like to convert to morse.
 ####Loading the Kernel To The SD Card
 
 1. Insert your SD card to your computer. Be sure it appears on your Ubuntu-VM
+
 2. Open up a terminal and `cd` until your present working directory is 'linux/arch/arm/boot'
+
 3. Transfer the uImage in the afformentioned directory to your partitioned SD card. Use the command `cp uImage /media/luanna/BOOT`
+
 4. Now `cd` into 'dts'. Your current file path should be 'linux/arch/arm/boot/dts'. Complete the same task for your dtb. Run the command `cp am335x-boneblack.dtb /media/luanna/BOOT`
+
 5. Now install your RFS(Root File System) with the following command `sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=/media/luanna/RFS modules_install`
+
 6. Check that the RFS was installed to the SD card RFS partition. 
+
 7. Transfer the tester.c executable file to the home directory found on the RFS. Using the command `cp` should do the trick.
 
 ####Boot BeagleBoneBlack Off The SD Card
 
 1. Connect your debug cable to the beaglebone and to your computer. Make sure your VM recognizes it
+
 2. Run picocom with the following command `picocom -b 115200 /dev/ttyUSB0` and be sure the output of that command reads 'Terminal Ready'
+
 3. Insert your SD into the BeagleBoneBlack
+
 4. Hold the reset button on the BeagleBoneBlack (across from the USB Port)
+
 5. Now power up the board with the usb cable
+
 6. When prompted to login, enter `root` as the user login
+
 7. You're in. 
 
 ####Test The Kernel Device Driver
 
 1. Log into the BeagleBoneBlack using login `root`
+
 2. `cd` to where you saved the tester.c executable and run the binary 
+
 3. Pass ./tester executable the string you want converted into morse 
+
 4. Your screen and beaglebone will now display the morse of that string
 
 ##Special Thanks
