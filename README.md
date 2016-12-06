@@ -93,11 +93,11 @@ This is the device driver code for the BeagleBoneBlack LED.
     #include <linux/mutex.h> //Multiuser capability
     #include <linux/string.h> //Convert string to morse and size message
     #include <linux/errno.h>     // error codes
-    #include <linux/delay.h>
-    #include <linux/types.h>  
-    #include <linux/kdev_t.h> 
-    #include <linux/ioport.h>
-    #include <linux/highmem.h>
+    #include <linux/delay.h> //allows us to delay 
+    #include <linux/types.h>  // alias for data types, allows for dd portability
+    #include <linux/kdev_t.h> //ditto ^
+    #include <linux/ioport.h> //for mapping physical and virutal memory to each other 
+    #include <linux/highmem.h> //ditto ^
     #include <linux/pfn.h>
     #include <linux/version.h>
     #include <linux/ioctl.h>
@@ -134,6 +134,8 @@ This is the device driver code for the BeagleBoneBlack LED.
 
 
     /** Variable Declarations and Initilizations **/
+    //Without Mutex we can define the major number with a macro
+    //However in this example we're dynamically allocating the majorNumber
     static int majorNumber;
     static char message[256] = {0};
     static short size_of_message;
