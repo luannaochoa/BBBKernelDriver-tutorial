@@ -658,7 +658,7 @@ This program takes one argument, the string we would like to convert to morse.
 1. Log into the BeagleBoneBlack using login `root`
 2. `cd` to where you saved the tester.c executable and run the binary 
 3. Pass ./tester executable the string you want converted into morse 
-4. Your screen and beaglebone should not display the morse of that string
+4. Your screen and beaglebone will now display the morse of that string
 
 
 
