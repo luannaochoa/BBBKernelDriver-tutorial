@@ -1,0 +1,26 @@
+#!/bin/sh
+
+#run this script as 'sudo source installdemTools'
+#remember to chmod this script in your environment so the script can execute for you
+
+#Update your apt-get
+apt-get update  
+
+#Install the ARM Cross Compiler
+apt-get install gcc-arm-linux-gnueabi -y
+
+#Install GIT
+apt-get install GIT
+echo "Remember to configure you're git with git config --global "your.email@here/" "
+
+#Install lzop Compression
+apt-get install lzop -y
+
+#Install uBoot mkimage dep libssl-dev
+apt-get install libssl-dev -y
+
+#Download U-Boot
+wget ftp://ftp.denx.de/pub/u-boot/u-boot-latest.tar.bz2
+tar -xjf u-boot-latest.tar.bz2
+echo "Remember to cd into u-boot and make and install the U-Boot tools"
+
