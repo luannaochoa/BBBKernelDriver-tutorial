@@ -27,13 +27,14 @@
 + Patience. 
 + BeagleBoneBlack and USB Connector 
 + SD Card
++ Debug Cable (Red, green and blue wires)
 
 ####Resources Cited/Referenced 
 + http://wiki.beyondlogic.org/index.php/BeagleBoneBlack_Building_Kernel
 + http://embedjournal.com/kernel-compilation-beaglebone-black/ 
 
 ####Disclaimers 
-+ If a command doesn't have 'permission', try sudo [command] 
++ If a command doesn't have 'permission', try `sudo [your-command]`
 + If a command doesn't work at all, try spelling it correctly 
 
 
@@ -595,20 +596,20 @@ This program takes one argument, the string we would like to convert to morse.
 ##Bring All Parts Together
 ####Loading the Kernel To The SD Card
 
-1. Now transfer your dtb and your uImage to the partitioned SD card. In addition to installing your RFS with these commands: 
-    
-     `cp uImage /media/luanna/BOOT`
-
-     `cp am335x-boneblack.dtb /media/luanna/BOOT`
-
-     `sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=/media/luanna/RFS modules_install`
+1. Insert your SD card to your computer. Be sure it appears on your Ubuntu-VM
+2. Open up a terminal and `cd` until your present working directory is 'linux/arch/arm/boot'
+3. Transfer the uImage in the afformentioned directory to your partitioned SD card. Use the command `cp uImage /media/luanna/BOOT`
+4. Now `cd` into 'dts'. Your current file path should be 'linux/arch/arm/boot/dts'. Complete the same task for your dtb. Run the command `cp am335x-boneblack.dtb /media/luanna/BOOT`
+5. Now install your RFS(Root File System) with the following command `sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=/media/luanna/RFS modules_install`
 
 ####Boot BeagleBoneBlack Off The SD Card
 
-1. Insert your SD into the BeagleBoneBlack, connect the debug cable to your BeagleBoneBlack as well and provide your BeagleBoneBlack a power source. 
+1. Connect 
+2. Insert your SD into the BeagleBoneBlack, connect the debug cable to your BeagleBoneBlack as well and provide your BeagleBoneBlack a power source. 
 
 ####Test The Kernel Device Driver
-13. Log into your beagleboneblack by typing in root. `cd` to where your tester.c executable is and run the program with the string you'd like in morse code. 
+
+ Log into your beagleboneblack by typing in root. `cd` to where your tester.c executable is and run the program with the string you'd like in morse code. 
 
 
 
