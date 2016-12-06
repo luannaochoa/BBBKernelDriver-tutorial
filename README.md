@@ -660,5 +660,6 @@ This program takes one argument, the string we would like to convert to morse.
 3. Pass ./tester executable the string you want converted into morse 
 4. Your screen and beaglebone will now display the morse of that string
 
-
+##Special Thanks
+Special thanks to me, myself, and I, for making this assignment more difficult than it needed to be. 
 
