@@ -631,7 +631,14 @@ This program takes one argument, the string we would like to convert to morse.
         `sudo install tools/mkimage /usr/local/bin`
 
 
-
++ **RFS(Root File System)**
+    * download a premade RFS from the following link: `https://www.dropbox.com/s/k93doprl261hwn2/rootfs.tar.xz?dl=0`
+    * Now run the following commands:
+       `sudo tar -xvf rootfs.tar.xz -C /media/mani/RFS/`
+       `cd /media/luanna/RFS/rootfs/`
+       `sudo mv ./* ../`
+       `cd ../`
+       `sudo rmdir rootfs`
 
 
 ####Kernel File Changes
