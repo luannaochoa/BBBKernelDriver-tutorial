@@ -1,5 +1,8 @@
 #Kernel Device Driver Assignment 
 
+##By Luanna Ochoa for Course EEL4734
+##Student ID: 5817288
+
 ## Tutorial Content
 1. Overview
     1. Resources Needed
@@ -59,6 +62,7 @@
 ####Device Driver Code 
 This is the device driver code for the BeagleBoneBlack LED.
 ```c
+    
     /***********************************************************************
     * Beagle Bone Black Morse Code LED Blink Device Driver
     *
@@ -84,25 +88,24 @@ This is the device driver code for the BeagleBoneBlack LED.
     *************************************************************************/
 
     /**Include Section**/
-    #include <linux/init.h> //Has macros to mark up f(x), i.e. __init/exit
-    #include <linux/module.h> //Main header for loading LKMS to Kernel
-    #include <linux/device.h> //Header supports module.h
-    #include <linux/kernel.h> //Main lib(macros+f(x)) for kernel 
-    #include <linux/fs.h> //Headers for linux file system support
-    #include <asm/uaccess.h> //Required for the copy to user function
-    #include <linux/mutex.h> //Multiuser capability
-    #include <linux/string.h> //Convert string to morse and size message
-    #include <linux/errno.h>     // error codes
-    #include <linux/delay.h> //allows us to delay 
-    #include <linux/types.h>  // alias for data types, allows for dd portability
-    #include <linux/kdev_t.h> //ditto ^
-    #include <linux/ioport.h> //for mapping physical and virutal memory to each other 
-    #include <linux/highmem.h> //ditto ^
-    #include <linux/pfn.h>
-    #include <linux/version.h>
-    #include <linux/ioctl.h>
-    #include <net/sock.h>
-    #include <net/tcp.h>
+    #include <linux/init.h>     //Has macros to mark up f(x), i.e. __init/exit
+    #include <linux/module.h>   //Main header for loading LKMS to Kernel
+    #include <linux/device.h>     //Header supports module.h
+    #include <linux/kernel.h>     //Main lib(macros+f(x)) for kernel 
+    #include <linux/fs.h>       //Headers for linux file system support
+    #include <asm/uaccess.h>    //Required for the copy to user function (usr space to kernel)
+    #include <linux/mutex.h>    //Multiuser capability
+    #include <linux/string.h>   //Convert string to morse and size message
+    #include <linux/errno.h>        //Error Codes -- like def. 
+    #include <linux/delay.h>    //msleep();
+    #include <linux/types.h>      // alias 4 data types; platform based
+    #include <linux/kdev_t.h>     //
+    #include <linux/ioport.h>   //for mapping physical and virtual
+    #include <linux/highmem.h>    //used in conjunction with ioport.h
+    #include <linux/pfn.h>      
+    #include <linux/ioctl.h>    
+
+
 
     /** Define Macros **/
     #define DEVICE_NAME "testchar" //determines name in /dev/[namehere]
@@ -116,12 +119,11 @@ This is the device driver code for the BeagleBoneBlack LED.
 
     #define GPIO_SETDATAOUT 0x194
     #define GPIO_CLEARDATAOUT 0x190
-    #define USR3 (1<<24) //BBB Led
+    #define USR3 (1<<24) //BBB Led; shifting the bit, 24 or 21 locations
     #define USR0 (1<<21) ///BBB Led
 
     #define USR_LED USR0
-    #define LED0_PATH "/sys/class/leds/beaglebone:green:usr0"
-
+    #define LED0_PATH "/sys/class/leds/beaglebone:green:usr0" //access to changed mode of the led so tht its off
     static DEFINE_MUTEX(ebbchar_mutex); //macro used for multiuser locking 
 
 
@@ -134,8 +136,6 @@ This is the device driver code for the BeagleBoneBlack LED.
 
 
     /** Variable Declarations and Initilizations **/
-    //Without Mutex we can define the major number with a macro
-    //However in this example we're dynamically allocating the majorNumber
     static int majorNumber;
     static char message[256] = {0};
     static short size_of_message;
@@ -146,15 +146,15 @@ This is the device driver code for the BeagleBoneBlack LED.
     int count;
     int morse_index;
 
-    static volatile void *gpio_addr;
-    static volatile unsigned int *gpio_setdataout_addr;
-    static volatile unsigned int *gpio_cleardataout_addr;
+    static volatile void *gpio_addr; //is virtual address, we'll need physical address 1st tho
+    static volatile unsigned int *gpio_setdataout_addr; // look @ the macro 
+    static volatile unsigned int *gpio_cleardataout_addr; // ^
 
-    static struct file * f = NULL;
+    static struct file * f = NULL; //relates to setup_disk()
     static int reopen = 0;
     static char *filepath = 0;
     static char fullFileName[1024];
-    static int dio = 0;
+    static int dio = 0; //direct IO, relates to setup_disk()
 
     static char *morse_code[40] = {"",
     ".-","-...","-.-.","-..",".","..-.","--.","....","..",".---","-.-",
@@ -171,11 +171,14 @@ This is the device driver code for the BeagleBoneBlack LED.
     static ssize_t device_write(struct file *, const char*, size_t, loff_t*);
     static char * mcodestring(char);
 
-    ssize_t write_vaddr_disk(void *, size_t);
+    ssize_t write_vaddr_disk(void *, size_t); //arg1: where you want to write, and what to write
+    //User defined functions, to change the mode of the led from what its doing to none and back 
     int setup_disk(void);
     void cleanup_disk(void);
     static void disable_dio(void);
 
+
+    /**User defined, will light LED**/
     void BBBremoveTrigger(void);
     void BBBstartHeartbeat(void);
     void BBBledOn(void);
@@ -211,81 +214,81 @@ This is the device driver code for the BeagleBoneBlack LED.
     }
 
     /** file_operations structure **/
-        // -> From /linux/fs.h
-        // -> Lists the callback f(x)s we want associated w/ file operations
+      // -> From /linux/fs.h
+      // -> Lists the callback f(x)s we want associated w/ file operations
     static struct file_operations fops = {
-        .open = device_open,
-        .read = device_read,
-        .write = device_write,
-        .release = device_release,
+      .open = device_open,
+      .read = device_read,
+      .write = device_write,
+      .release = device_release,
     };
 
 
 
     /** Function called when initialized **/
     static int __init testchar_init(void){
-        printk(KERN_INFO "MorseModule: Initializing the TestChar LKM \n");
+      printk(KERN_INFO "MorseModule: Initializing the TestChar LKM \n");
 
-        //Dynamically allocate a major number
-        majorNumber= register_chrdev(0, DEVICE_NAME, &fops);
-        if (majorNumber<0){
-            printk(KERN_ALERT "MorseModule failed to register a major number\n");
-            return majorNumber;
-        }
-        printk(KERN_INFO "MorseModule: registered correctly with major number %d\n", majorNumber);
+      //Dynamically allocate a major number
+      majorNumber= register_chrdev(0, DEVICE_NAME, &fops);
+      if (majorNumber<0){
+        printk(KERN_ALERT "MorseModule failed to register a major number\n");
+        return majorNumber;
+      }
+      printk(KERN_INFO "MorseModule: registered correctly with major number %d\n", majorNumber);
 
-        //Register device to class
-        testcharClass=class_create(THIS_MODULE, CLASS_NAME);
-        if (IS_ERR(testcharClass)){
-            unregister_chrdev(majorNumber, DEVICE_NAME);
-            printk(KERN_ALERT "Failed to register device class\n");
-            return PTR_ERR(testcharClass);
-        }
-        printk(KERN_INFO "MorseModule: device class registered correctly\n");
+      //Register device to class
+      testcharClass=class_create(THIS_MODULE, CLASS_NAME);
+      if (IS_ERR(testcharClass)){
+        unregister_chrdev(majorNumber, DEVICE_NAME);
+        printk(KERN_ALERT "Failed to register device class\n");
+        return PTR_ERR(testcharClass);
+      }
+      printk(KERN_INFO "MorseModule: device class registered correctly\n");
 
-        //Register the device driver
-        testcharDevice= device_create(testcharClass, NULL, MKDEV(majorNumber, 0), NULL, DEVICE_NAME);
-        if (IS_ERR(testcharDevice)){
-            class_destroy(testcharClass);
-            unregister_chrdev(majorNumber, DEVICE_NAME);
-            printk(KERN_ALERT "Faied to create the device\n");
-            return PTR_ERR(testcharDevice);
-        }
-        printk(KERN_INFO "MorseModule: device class registered correctly \n");
+      //Register the device driver
+      testcharDevice= device_create(testcharClass, NULL, MKDEV(majorNumber, 0), NULL, DEVICE_NAME);
+      if (IS_ERR(testcharDevice)){
+        class_destroy(testcharClass);
+        unregister_chrdev(majorNumber, DEVICE_NAME);
+        printk(KERN_ALERT "Faied to create the device\n");
+        return PTR_ERR(testcharDevice);
+      }
+      printk(KERN_INFO "MorseModule: device class registered correctly \n");
 
-        //Map memory for GPIO
-        gpio_addr = ioremap(GPIO1_START_ADDR, GPIO1_SIZE);
-         if(!gpio_addr) {
+      //Map memory for GPIO
+      gpio_addr = ioremap(GPIO1_START_ADDR, GPIO1_SIZE);
+       if(!gpio_addr) {
          printk (KERN_ERR "HI: ERROR: Failed to remap memory for GPIO Bank 1.\n");
-        }
-
-        gpio_setdataout_addr   = gpio_addr + GPIO_SETDATAOUT;
+      }
+      //Look at Macros, used to offset bit values to change them
+      gpio_setdataout_addr   = gpio_addr + GPIO_SETDATAOUT;
         gpio_cleardataout_addr = gpio_addr + GPIO_CLEARDATAOUT;
 
 
 
-        //Enable multiuser locking
-        mutex_init(&ebbchar_mutex); 
-        return 0;
+      //Enable multiuser locking
+      mutex_init(&ebbchar_mutex); 
+      return 0;
     }
 
 
 
     /** Function called upon exit **/
     static void __exit testchar_exit(void){
-        //Enable multiuser lock
-        mutex_destroy(&ebbchar_mutex);        
+      //Enable multiuser lock
+      mutex_destroy(&ebbchar_mutex);        
 
-        //Turn off LED Capability 
-        BBBledOff();
-        BBBstartHeartbeat();
+      //Turn off LED Capability 
+      BBBledOff();
+      BBBstartHeartbeat();
 
-        //Unregister and destroy device 
-        device_destroy(testcharClass, MKDEV(majorNumber,0));
-        class_unregister(testcharClass);
-        class_destroy(testcharClass);
-        unregister_chrdev(majorNumber, DEVICE_NAME);
-        printk(KERN_INFO "MorseModule: Goodbye from the LKM!\n");
+      //Unregister and destroy device 
+      device_destroy(testcharClass, MKDEV(majorNumber,0));
+      class_unregister(testcharClass);
+      class_destroy(testcharClass);
+      unregister_chrdev(majorNumber, DEVICE_NAME);
+      printk(KERN_INFO "MorseModule: Goodbye from the LKM!\n");
     }
 
     /**-----------------------------------------------------------**/
@@ -348,13 +351,13 @@ This is the device driver code for the BeagleBoneBlack LED.
 
        fs = get_fs();
        set_fs(KERNEL_DS);
-        
-       if (dio && reopen) { 
-          f = filp_open(filepath, O_WRONLY | O_CREAT | O_LARGEFILE | O_SYNC | O_DIRECT, 0444);
-       } else if (dio) {
-          f = filp_open(filepath, O_WRONLY | O_CREAT | O_LARGEFILE | O_TRUNC | O_SYNC | O_DIRECT, 0444);
-       }
-        
+      
+       // if (dio && reopen) {  
+       //    f = filp_open(filepath, O_WRONLY | O_CREAT | O_LARGEFILE | O_SYNC | O_DIRECT, 0444);
+       // } else if (dio) {
+       //    f = filp_open(filepath, O_WRONLY | O_CREAT | O_LARGEFILE | O_TRUNC | O_SYNC | O_DIRECT, 0444);
+       // }
+      
        if(!dio || (f == ERR_PTR(-EINVAL))) {
           f = filp_open(filepath, O_WRONLY | O_CREAT | O_LARGEFILE | O_TRUNC, 0444);
           dio = 0;
@@ -366,11 +369,11 @@ This is the device driver code for the BeagleBoneBlack LED.
           return err;
        }
 
-       set_fs(fs);
+       set_fs(fs); //declares/allows fs to be used
        return 0;
     }
 
-    /**  **/
+    /** Close the file **/
     void cleanup_disk() {
        mm_segment_t fs;
 
@@ -387,21 +390,23 @@ This is the device driver code for the BeagleBoneBlack LED.
        ssize_t s;
        loff_t pos;
 
+       //opening fs
        fs = get_fs();
        set_fs(KERNEL_DS);
-        
+      
+      //getting how much to write, computing position; recursive 
        pos = f->f_pos;
        s = vfs_write(f, v, is, &pos);
        if (s == is) {
           f->f_pos = pos;
-       }                    
+       }          
        set_fs(fs);
        if (s != is && dio) {
           disable_dio();
           f->f_pos = pos;
           return write_vaddr_disk(v, is);
        }
-       return s;
+       return s; //returns what was written
     }
 
 
@@ -412,93 +417,90 @@ This is the device driver code for the BeagleBoneBlack LED.
                                           /// returns 1 if successful and 0 if there is contention
         printk(KERN_ALERT "MorseModule: Device in use by another process");
         return -EBUSY;
-        }
+      }
 
-        numberOpens++;
-        printk(KERN_INFO "MorseModule: Device has been opened %d time(s)\n", numberOpens);
-        return 0;
+      numberOpens++;
+      printk(KERN_INFO "MorseModule: Device has been opened %d time(s)\n", numberOpens);
+      return 0;
     }
 
 
 
     /** dev_read function definition **/
     static ssize_t device_read(struct file *filep, char *buffer, size_t len, loff_t *offset){
-        int error_count = 0;
-        error_count=copy_to_user(buffer, message, size_of_message);
+      int error_count = 0;
+      error_count=copy_to_user(buffer, message, size_of_message);
 
-        if(error_count==0){
-            printk(KERN_INFO "MorseModule: Sent %d characters to the user \n", size_of_message);
-            return (size_of_message=0);
-        }
-        else {
-            printk(KERN_INFO "MorseModule: Failed to send %d characters to the user\n", error_count);
-            return -EFAULT;
-        }
+      if(error_count==0){
+        printk(KERN_INFO "MorseModule: Sent %d characters to the user \n", size_of_message);
+        return (size_of_message=0);
+      }
+      else {
+        printk(KERN_INFO "MorseModule: Failed to send %d characters to the user\n", error_count);
+        return -EFAULT;
+      }
     }
 
 
 
     /** dev_write function definition **/
     static ssize_t device_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
-        sprintf(message, "%s", buffer);
-        size_of_message = strlen(message);
-        printk(KERN_INFO "MorseModule: Received %d  characters from the user \n", len);
-        printk(KERN_INFO "Converting your string: \"%s\" into morse code... \n", message);
-        
-        //store string as morse code into morseBuffer
-        for (count = 0; count <= size_of_message; count++ ){
-            if (count == 0){ 
-                strcpy(morseBuffer, mcodestring(message[count]));
-                        }
-            else {
-                strcat(morseBuffer, mcodestring(message[count]));
-            }
+      sprintf(message, "%s", buffer);
+      size_of_message = strlen(message);
+      printk(KERN_INFO "MorseModule: Received %d  characters from the user \n", len);
+      printk(KERN_INFO "Converting your string: \"%s\" into morse code... \n", message);
+      
+      //store string as morse code into morseBuffer
+      for (count = 0; count <= size_of_message; count++ ){
+        if (count == 0){ 
+          strcpy(morseBuffer, mcodestring(message[count]));
+              }
+        else {
+          strcat(morseBuffer, mcodestring(message[count]));
         }
-        
-         BBBremoveTrigger();
+      }
+      
+       BBBremoveTrigger();
 
-        //Blink LED Depending on morseBuffer index value
-        printk(KERN_INFO "%s\n", morseBuffer);
+      //Blink LED Depending on morseBuffer index value
+      printk(KERN_INFO "%s\n", morseBuffer);
 
-        for (morse_index=0; morse_index <= sizeof(morseBuffer); morse_index++){
+      for (morse_index=0; morse_index <= sizeof(morseBuffer); morse_index++){
 
-            if(morseBuffer[morse_index] == '-'){
-                msleep(500);            
-                printk(KERN_INFO "LED STATUS: dash\n");
-                BBBledOn();
-                msleep(700);
-                BBBledOff();
-            }
-            else if (morseBuffer[morse_index] == '.'){
-                msleep(500);            
-                printk(KERN_INFO "LED STATUS: dot\n");
-                BBBledOn();
-                msleep(300);
-                BBBledOff();
-            }
+        if(morseBuffer[morse_index] == '-'){
+          msleep(500);      
+          printk(KERN_INFO "LED STATUS: dash\n");
+          BBBledOn();
+          msleep(700);
+          BBBledOff();
         }
+        else if (morseBuffer[morse_index] == '.'){
+          msleep(500);      
+          printk(KERN_INFO "LED STATUS: dot\n");
+          BBBledOn();
+          msleep(300);
+          BBBledOff();
+        }
+      }
 
-        return len;
+      return len;
     }
 
 
     /** dev_release function definition **/
     static int device_release (struct inode *inodep, struct file *filep){
-        mutex_unlock(&ebbchar_mutex);     
+      mutex_unlock(&ebbchar_mutex);     
 
-        printk(KERN_INFO "MorseModule: Device Succesfully Closed\n");
-        return 0;
+      printk(KERN_INFO "MorseModule: Device Succesfully Closed\n");
+      return 0;
     }
-
-
 
 
     /** Module init/exit macros from init.h used **/
     module_init(testchar_init);
     module_exit(testchar_exit);
-    
-
 ```
+
 
 ####User Space Program Code
 This program takes one argument, the string we would like to convert to morse.
@@ -669,9 +671,11 @@ This program takes one argument, the string we would like to convert to morse.
 
 ####Compiling Kernel with the Device Driver
 
-1. Now compile the driver with the following command: `make ARCH=arm CROSS_COMPILE=linux-arm-gnuaebi- -j4`. This will produce testchar.o and other files.
+1. Now `cd` into linux, and complete the following steps.
 
-2. Now run `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- uImage dtbs LOADADDR=0x80008000 -j4` . This command produces a compressed kernel. We can transfer this to the sd card or vmlinuz, the kernel proper. 
+2. Now compile the driver with the following command: `make ARCH=arm CROSS_COMPILE=linux-arm-gnuaebi- -j4`. This will produce testchar.o and other files.
+
+3. Now run `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- uImage dtbs LOADADDR=0x80008000 -j4` . This command produces a compressed kernel. We can transfer this to the sd card or vmlinuz, the kernel proper. 
 
 
 ##Bring All Parts Together
