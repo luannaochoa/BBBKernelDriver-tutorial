@@ -634,11 +634,12 @@ This program takes one argument, the string we would like to convert to morse.
 + **RFS(Root File System)**
     * download a premade RFS from the following link: `https://www.dropbox.com/s/k93doprl261hwn2/rootfs.tar.xz?dl=0`
     * Now run the following commands:
-       `sudo tar -xvf rootfs.tar.xz -C /media/mani/RFS/`
-       `cd /media/luanna/RFS/rootfs/`
+       `sudo tar -xvf rootfs.tar.xz `
+       `cp /media/luanna/RFS/rootfs/`
        `sudo mv ./* ../`
        `cd ../`
        `sudo rmdir rootfs`
+
 
 
 ####Kernel File Changes
@@ -687,7 +688,7 @@ This program takes one argument, the string we would like to convert to morse.
 
 ##Bring All Parts Together
 ####Loading the Kernel To The SD Card
-
+  
 1. Insert your SD card to your computer. Be sure it appears on your Ubuntu-VM
 
 2. Open up a terminal and `cd` until your present working directory is 'linux/arch/arm/boot'
@@ -696,9 +697,9 @@ This program takes one argument, the string we would like to convert to morse.
 
 4. Now `cd` into 'dts'. Your current file path should be 'linux/arch/arm/boot/dts'. Complete the same task for your dtb. Run the command `cp am335x-boneblack.dtb /media/luanna/BOOT`
 
-5. Now install your RFS(Root File System) with the following command `sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=/media/luanna/RFS modules_install`
+5. Now install your RFS(Root File System) to your SD card. Transfer the contents of the RFS to your SD card
 
-6. Check that the RFS was installed to the SD card RFS partition. 
+6. Check that SD card contains the RFS partition
 
 7. Transfer the tester.c executable file to the home directory found on the RFS. Using the command `cp` should do the trick.
 
