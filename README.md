@@ -1,7 +1,6 @@
 #Kernel Device Driver Assignment 
 
 ##By Luanna Ochoa for Course EEL4734
-##Student ID: 5817288
 
 ## Tutorial Content
 1. Overview
